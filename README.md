@@ -9,4 +9,7 @@ Utilisable via interface.
 
 ## Chapitre 1 : introduction
 
-## Chaptire 2: depot local
+## Chapitre 2: depot local
+
+
+## Chapitre 3: repository distant
