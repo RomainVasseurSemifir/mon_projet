@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 2.1 — Merge vs Rebase</title>
+    
+    
+    
+    <style>
+/* ============================================
+   Apache Superset - Formation 2026
+   CSS Document Markdown - Cards & Delimiteurs
+   ============================================ */
+
+/* ============================================
+   FONTS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ============================================
+   VARIABLES
+   ============================================ */
+:root {
+    /* Couleurs Superset */
+    --color-primary: #20a7c9;
+    --color-primary-dark: #1a8ba8;
+    --color-primary-light: #e0f4f8;
+    --color-primary-gradient: linear-gradient(135deg, #20a7c9 0%, #1a8ba8 100%);
+    --color-accent: #ff7f44;
+    --color-accent-light: #fff4ef;
+    
+    /* Semantique */
+    --color-success: #22c55e;
+    --color-success-light: #dcfce7;
+    --color-warning: #eab308;
+    --color-warning-light: #fef9c3;
+    --color-danger: #ef4444;
+    --color-danger-light: #fee2e2;
+    --color-info: #3b82f6;
+    --color-info-light: #dbeafe;
+    
+    /* Neutres */
+    --gray-50: #fafafa;
+    --gray-100: #f4f4f5;
+    --gray-200: #e4e4e7;
+    --gray-300: #d4d4d8;
+    --gray-400: #a1a1aa;
+    --gray-500: #71717a;
+    --gray-600: #52525b;
+    --gray-700: #3f3f46;
+    --gray-800: #27272a;
+    --gray-900: #18181b;
+    
+    /* Typographie */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    
+    /* Dimensions */
+    --content-max-width: 80%;
+    --content-padding: 2.5rem;
+    
+    /* Bordures & Ombres */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+    --shadow-card: 0 2px 8px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.1);
+
+    /* Copyright / Footer (personnalisable via --copyright-text) */
+    --copyright-text: "© 2026 Semifir — adrien.vossough@semifir.com";
+    --disclaimer-text: "Ce support ne peut être reproduit ou utilisé en dehors d'une formation donnée par Semifir.";
+    --copyright-color: rgba(0, 0, 0, 0.35);
+}
+
+/* Header copyright en haut a droite, present sur chaque page (screen + print PDF) */
+body::before {
+    content: var(--copyright-text);
+    position: fixed;
+    top: 10px;
+    right: 18px;
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--copyright-color);
+    z-index: 1002;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* ============================================
+   RESET
+   ============================================ */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* ============================================
+   BASE
+   ============================================ */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--gray-800);
+    background: linear-gradient(180deg, var(--gray-100) 0%, var(--gray-50) 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 2.5rem 1rem;
+}
+
+/* ============================================
+   CONTAINER - markdown-body
+   ============================================ */
+.markdown-body,
+article,
+main {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    background: white;
+    padding: var(--content-padding);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--gray-200);
+}
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--gray-900);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-top: 0;
+    padding-bottom: 1rem;
+    border-bottom: none;
+    position: relative;
+    color: var(--gray-900);
+}
+
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: var(--color-primary-gradient);
+    border-radius: 2px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-top: 3rem;
+    padding: 1rem 1.25rem;
+    background: var(--gray-50);
+    border-left: 4px solid var(--color-primary);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--gray-800);
+}
+
+h3 {
+    font-size: 1.25rem;
+    color: var(--gray-800);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+h3::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+h4 {
+    font-size: 1.1rem;
+    color: var(--gray-700);
+    border-bottom: 1px dashed var(--gray-300);
+    padding-bottom: 0.5rem;
+}
+
+h5, h6 {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+/* ============================================
+   PARAGRAPHS & TEXT
+   ============================================ */
+p {
+    margin-bottom: 1.25rem;
+}
+
+strong, b {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-bottom: 1px solid transparent;
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+    border-bottom-color: var(--color-primary);
+}
+
+mark {
+    background: linear-gradient(120deg, #fef08a 0%, #fde047 100%);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+}
+
+/* ============================================
+   HORIZONTAL RULE - DELIMITEUR
+   ============================================ */
+hr {
+    border: none;
+    height: 1px;
+    background: var(--gray-200);
+    margin: 3rem 0;
+    position: relative;
+}
+
+hr::before {
+    content: '◆';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    color: var(--color-primary);
+    padding: 0 1rem;
+    font-size: 0.8rem;
+}
+
+/* ============================================
+   LISTS
+   ============================================ */
+ul, ol {
+    margin-bottom: 1.25rem;
+    padding-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+li > ul, li > ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+ul { list-style-type: none; }
+
+ul > li::before {
+    content: '▸';
+    color: var(--color-primary);
+    font-weight: bold;
+    position: absolute;
+    left: -1.25rem;
+}
+
+ul ul > li::before {
+    content: '○';
+    font-size: 0.7em;
+}
+
+ol { list-style-type: decimal; }
+
+/* ============================================
+   IMAGES - CARDS
+   ============================================ */
+img {
+    display: block;
+    max-width: 100%;
+    max-height: 500px;
+    height: auto;
+    margin: 2rem auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    transition: transform 0.2s, box-shadow 0.2s;
+    object-fit: contain;
+}
+
+img:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Images contraintes */
+img[src*="screenshot"],
+img[src*="superset.apache.org"] {
+    max-height: 400px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Images locales dans le dossier images */
+img[src*="images/"] {
+    max-height: 450px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Images dans les titres - inline pour ne pas casser le titre */
+h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {
+    display: inline-block;
+    margin: 0 0.5rem 0 0;
+    vertical-align: middle;
+    max-height: 1.5em;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+    border: none;
+}
+
+/* Images dans les tableaux - inline pour ne pas casser la cellule */
+td img, th img {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+    max-height: 2em;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+    border: none;
+}
+
+figure {
+    margin: 2rem 0;
+    text-align: center;
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+}
+
+figure img {
+    margin: 0 auto 1rem;
+    box-shadow: none;
+    border: none;
+}
+
+figcaption {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+/* ============================================
+   CODE - CARDS
+   ============================================ */
+/* Code inline uniquement (pas dans pre) */
+code:not(pre code) {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    border: 1px solid #fcd34d;
+}
+
+/* Code dans les blocs pre - reset pour garder la coloration syntaxique */
+pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    border: none;
+    font-weight: inherit;
+}
+
+pre {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    background: var(--gray-900);
+    color: #e4e4e7;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-800);
+    position: relative;
+}
+
+pre::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    width: 12px;
+    height: 12px;
+    background: #ff5f56;
+    border-radius: 50%;
+    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27ca40;
+}
+
+pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+/* ============================================
+   TABLES - CARDS
+   ============================================ */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 1.5rem 0;
+    font-size: 0.9375rem;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--gray-200);
+}
+
+thead {
+    background: var(--color-primary-gradient);
+    color: white;
+}
+
+th {
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem 1.25rem;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+td {
+    padding: 0.875rem 1.25rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:nth-child(even) {
+    background: var(--gray-50);
+}
+
+tbody tr {
+    transition: background 0.15s;
+}
+
+tbody tr:hover {
+    background: var(--color-primary-light);
+}
+
+/* ============================================
+   BLOCKQUOTES - CARDS
+   ============================================ */
+blockquote {
+    margin: 2rem 0;
+    padding: 1.5rem 1.5rem 1.5rem 2rem;
+    border-left: 4px solid var(--color-primary);
+    background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    color: var(--gray-700);
+    box-shadow: var(--shadow-sm);
+    font-style: italic;
+    position: relative;
+}
+
+blockquote::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    font-size: 4rem;
+    color: var(--color-primary);
+    opacity: 0.2;
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   DETAILS / ACCORDIONS - CARDS
+   ============================================ */
+details {
+    margin: 1.5rem 0;
+    padding: 0;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s;
+}
+
+details:hover {
+    box-shadow: var(--shadow-md);
+}
+
+details[open] {
+    box-shadow: var(--shadow-md);
+    padding: 1rem 1.25rem;
+}
+
+details[open] > summary {
+    /* Compenser le padding du details pour que le summary reste bord a bord */
+    margin: -1rem -1.25rem 1rem -1.25rem;
+}
+
+/* Le div.highlight et pre doivent prendre toute la largeur */
+details > .highlight,
+details > pre {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    border-radius: 0;
+}
+
+details > .highlight pre {
+    border-radius: 0;
+    margin: 0;
+}
+
+details > .highlight:last-child,
+details > pre:last-child {
+    margin-bottom: -1rem;
+}
+
+summary {
+    font-weight: 600;
+    cursor: pointer;
+    padding: 1rem 1.25rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+details[open] summary {
+    border-bottom-color: var(--gray-200);
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary::before {
+    content: '▶';
+    font-size: 0.65rem;
+    color: var(--color-primary);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+summary:hover {
+    background: var(--gray-100);
+}
+
+
+/* ============================================
+   MERMAID DIAGRAMS - CARDS
+   ============================================ */
+.mermaid,
+pre.mermaid {
+    background: white;
+    padding: 2rem;
+    margin: 2rem 0;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    overflow-x: auto;
+    box-shadow: var(--shadow-card);
+}
+
+.mermaid::before {
+    display: none;
+}
+
+.mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ============================================
+   ALERTS / NOTES - CARDS
+   ============================================ */
+.note, .info, .tip {
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--color-info);
+    background: var(--color-info-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.warning, .attention {
+    border-left-color: var(--color-warning);
+    background: var(--color-warning-light);
+}
+
+.danger, .error {
+    border-left-color: var(--color-danger);
+    background: var(--color-danger-light);
+}
+
+.success {
+    border-left-color: var(--color-success);
+    background: var(--color-success-light);
+}
+
+/* ============================================
+   SECTION DIVIDERS
+   ============================================ */
+h2 + p::first-letter {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: var(--color-primary);
+    float: left;
+    margin-right: 0.1em;
+    line-height: 1;
+}
+
+/* ============================================
+   PRINT
+   ============================================ */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .markdown-body, article, main {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+    }
+    
+    pre {
+        background: var(--gray-100) !important;
+        color: var(--gray-900) !important;
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+    }
+    
+    pre::before {
+        display: none;
+    }
+    
+    a { color: var(--gray-900); }
+    
+    img {
+        max-height: 280px;
+        page-break-inside: avoid;
+        box-shadow: none;
+    }
+    
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+    
+    table, pre, blockquote, details {
+        page-break-inside: avoid;
+    }
+    
+    h2 {
+        background: none;
+        padding-left: 0;
+    }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem 0.5rem;
+    }
+    
+    .markdown-body, article, main {
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+    }
+    
+    h1 { font-size: 1.75rem; }
+    h2 { 
+        font-size: 1.25rem;
+        padding: 0.75rem 1rem;
+    }
+    h3 { font-size: 1.1rem; }
+    
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    pre {
+        padding: 1rem;
+        font-size: 0.8rem;
+    }
+    
+    img {
+        max-height: 250px;
+    }
+    
+    blockquote::before {
+        display: none;
+    }
+}
+
+/* ============================================
+   LOGO SUPERSET
+   ============================================ */
+img[src*="superset-logo"] {
+    max-height: 80px;
+    margin: 0 0 2rem 0;
+    box-shadow: none;
+    border: none;
+}
+
+img[src*="superset-logo"]:hover {
+    transform: none;
+}
+
+/* ============================================
+   MERMAID LIGHTBOX (zoom diagrammes)
+   ============================================ */
+
+/* Wrapper pour positionner le bouton d'expansion */
+.mermaid-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+/* Bouton d'expansion */
+.mermaid-expand-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--gray-600);
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+}
+
+.mermaid-wrapper:hover .mermaid-expand-btn {
+    opacity: 1;
+}
+
+.mermaid-expand-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Lightbox overlay */
+.mermaid-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    display: none;
+}
+
+.mermaid-lightbox.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-lightbox-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+.mermaid-lightbox-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-lightbox-content {
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
+    padding: 40px;
+}
+
+/* Le clone du wrapper .mermaid herite des styles de la page (flex, max-height,
+   padding, background, border) qui empechent l'affichage en grand. On les
+   neutralise uniquement dans le contexte de la lightbox pour que le rendu
+   visuel des elements internes (.node, .messageText, .actor, etc.) reste
+   strictement identique a celui de la page. */
+.mermaid-lightbox-content .mermaid,
+.mermaid-lightbox-content .mermaid-clone {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    border: none !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 32px !important;
+    margin: 0 !important;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.mermaid-lightbox-content svg,
+.mermaid-lightbox-content .mermaid svg {
+    max-width: none !important;
+    max-height: none !important;
+    width: 80vw !important;
+    height: auto !important;
+    min-width: 800px;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+/* On évite tout override interne sur les foreignObject et leurs enfants :
+   Mermaid calcule le centrage des labels avec leur taille/largeur d'origine
+   (transform du <g class="label">, display: table-cell, etc.). Forcer
+   text-align, white-space ou width casse le rendu (flowchart TD, mindmap...). */
+.mermaid-lightbox.active svg foreignObject {
+    overflow: visible !important;
+}
+
+/* Contrôles du lightbox */
+.mermaid-lightbox-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10001;
+}
+
+.mermaid-lb-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--gray-800);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.mermaid-lb-zoom-reset {
+    width: auto;
+    padding: 0 16px;
+    font-size: 0.9rem;
+}
+
+.mermaid-lb-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: scale(1.05);
+}
+
+.mermaid-lb-close:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Instructions en bas */
+.mermaid-lightbox::after {
+    content: 'Molette: zoom • Glisser: déplacer • Échap: fermer';
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border-radius: var(--radius-lg);
+}
+
+    </style>
+    
+    <style>
+/* ============================================
+   Mermaid Diagram Styles
+   ============================================ */
+
+/* Container pour les diagrammes Mermaid */
+.mermaid-container {
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+    flex: 1;
+    min-height: 120px;
+    max-height: 600px;
+    max-width: 100%;
+    width: 100%;
+}
+
+.mermaid-container--full {
+    flex: 1;
+    min-height: 0;
+}
+
+.mermaid-container--compact {
+    min-height: 100px;
+    max-height: 350px;
+    flex: 0 0 auto;
+}
+
+.mermaid-container--small {
+    max-height: 300px;
+}
+
+.mermaid-container--medium {
+    max-height: 450px;
+}
+
+.mermaid-container--large {
+    max-height: 700px;
+}
+
+/* Empêcher les diagrammes de déborder */
+.mermaid-container--contained {
+    overflow: hidden;
+}
+
+.mermaid-container--contained .mermaid svg {
+    max-height: 100% !important;
+}
+
+/* Override des styles Mermaid par défaut */
+.mermaid, pre.mermaid {
+    font-family: var(--font-display, 'Inter', sans-serif);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 16px 0;
+    text-align: center;
+    max-height: 60vh;
+    overflow: hidden;
+}
+
+.mermaid::before,
+.mermaid::after {
+    display: none;
+}
+
+/* SVG généré par Mermaid - dimensionnement contrôlé */
+.mermaid svg {
+    max-width: 100%;
+    max-height: 60vh;
+    height: auto;
+    width: auto;
+}
+
+/* Les diagrammes Gantt ont un max-width inline (~300px) injecte par Mermaid
+   qui les ecrase. On force la pleine largeur et on libere les contraintes
+   du parent flex (.mermaid). */
+.mermaid svg[aria-roledescription="gantt"] {
+    max-width: none !important;
+    width: 100% !important;
+    min-width: 800px !important;
+    max-height: none !important;
+    height: auto !important;
+    flex: 1 1 auto !important;
+}
+
+/* Le parent .mermaid contenant un Gantt : on casse le flex centre + overflow
+   hidden + max-height qui empechent le SVG de prendre sa place. */
+.mermaid:has(svg[aria-roledescription="gantt"]) {
+    display: block !important;
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    min-width: 0 !important;
+}
+
+/* Pour les diagrammes complexes, permettre le scroll si nécessaire */
+.mermaid-container--scroll {
+    overflow: auto;
+}
+
+.mermaid .node rect,
+.mermaid .node polygon,
+.mermaid .node circle {
+    stroke-width: 2px !important;
+}
+
+.mermaid .edgePath .path {
+    stroke-width: 2px !important;
+}
+
+.mermaid .label {
+    font-family: var(--font-display) !important;
+    font-size: 12px !important;
+    overflow: visible !important;
+}
+
+/* Ajustements pour différentes tailles de diagrammes */
+.mermaid .nodeLabel {
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+}
+
+.mermaid .edgeLabel {
+    font-size: 11px !important;
+    overflow: visible !important;
+}
+
+/* Permettre aux nœuds de s'adapter au contenu */
+.mermaid .node rect,
+.mermaid .node polygon {
+    overflow: visible !important;
+}
+
+/* ============================================
+   Cluster / Subgraph Styles
+   Fix pour les titres sur 2 lignes
+   ============================================ */
+.mermaid .cluster rect,
+.mermaid svg .cluster rect {
+    rx: 8px !important;
+    ry: 8px !important;
+}
+
+.mermaid .cluster-label {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    dominant-baseline: text-before-edge !important;
+}
+
+/* Augmenter l'espace pour les titres de cluster sur plusieurs lignes */
+.mermaid .cluster-label foreignObject {
+    overflow: visible !important;
+}
+
+.mermaid .cluster-label foreignObject div,
+.mermaid .cluster-label foreignObject p,
+.mermaid .cluster-label foreignObject span {
+    padding-bottom: 8px !important;
+    margin-bottom: 4px !important;
+    line-height: 1.4 !important;
+}
+
+/* Padding interne des clusters pour éviter le chevauchement */
+.mermaid .cluster .nodeLabel {
+    margin-top: 4px !important;
+}
+
+/* Style visuel des clusters */
+.mermaid .cluster rect {
+    fill: #f8fafc !important;
+    stroke: #cbd5e1 !important;
+    stroke-width: 2px !important;
+}
+
+/* Texte des labels de cluster - forcer lisibilité */
+.mermaid .cluster-label text,
+.mermaid .cluster-label tspan,
+.mermaid svg .cluster-label text {
+    fill: #1e293b !important;
+    color: #1e293b !important;
+    font-weight: 700 !important;
+}
+
+/* ============================================
+   Mermaid Color Contrast Fixes
+   Le contraste est géré par JavaScript après rendu
+   Voir la fonction fixMermaidContrast() dans les fichiers HTML
+   ============================================ */
+
+/* ============================================
+   Sequence Diagram Specific Styles
+   Palette : fonds pastel/sombres avec texte contrasté
+   ============================================ */
+
+/* Acteurs/Participants - boîtes en haut et en bas - FOND FONCÉ BLEU */
+.mermaid .actor,
+.mermaid svg .actor,
+.mermaid svg rect.actor,
+.mermaid .actor-top,
+.mermaid .actor-bottom,
+.mermaid svg .actor-top,
+.mermaid svg .actor-bottom {
+    fill: #1e3a5f !important;
+    stroke: #0c4a6e !important;
+    stroke-width: 2px !important;
+}
+
+/* Texte des acteurs - FORCER couleur BLANCHE sur fond foncé */
+.mermaid .actor-man,
+.mermaid text.actor,
+.mermaid svg text.actor,
+.mermaid svg .actor-man {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+/* Tspan dans les acteurs */
+.mermaid text.actor tspan,
+.mermaid svg text.actor tspan,
+.mermaid .actor-man tspan {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+
+/* Lignes de vie des acteurs */
+.mermaid .actor-line,
+.mermaid svg .actor-line,
+.mermaid svg line.actor-line {
+    stroke: #64748b !important;
+    stroke-width: 1.5px !important;
+    stroke-dasharray: 4, 4 !important;
+}
+
+/* Flèches de messages - lignes */
+.mermaid .messageLine0,
+.mermaid .messageLine1,
+.mermaid svg .messageLine0,
+.mermaid svg .messageLine1,
+.mermaid svg line.messageLine0,
+.mermaid svg line.messageLine1 {
+    stroke: #1e293b !important;
+    stroke-width: 2px !important;
+}
+
+/* Pointes de flèches */
+.mermaid .arrowhead,
+.mermaid svg .arrowhead {
+    fill: #1e293b !important;
+    stroke: #1e293b !important;
+}
+
+.mermaid #arrowhead path,
+.mermaid marker path,
+.mermaid svg marker path,
+.mermaid svg #arrowhead path {
+    fill: #1e293b !important;
+    stroke: #1e293b !important;
+}
+
+/* Texte des messages - FORCER couleur NOIRE (lisible sur fond blanc) */
+.mermaid .messageText,
+.mermaid svg .messageText,
+.mermaid svg text.messageText {
+    fill: #0f172a !important;
+    color: #0f172a !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    stroke: none !important;
+}
+
+/* Forcer tous les tspan dans messageText */
+.mermaid .messageText tspan,
+.mermaid svg .messageText tspan {
+    fill: #0f172a !important;
+    color: #0f172a !important;
+}
+
+/* Boîtes d'activation - FOND PASTEL BLEU */
+.mermaid .activation0,
+.mermaid .activation1,
+.mermaid .activation2,
+.mermaid svg .activation0,
+.mermaid svg .activation1,
+.mermaid svg .activation2 {
+    fill: #dbeafe !important;
+    stroke: #3b82f6 !important;
+    stroke-width: 2px !important;
+}
+
+/* Boucles (loop), alternatives (alt), options (opt), etc. - FOND PASTEL */
+.mermaid .loopLine,
+.mermaid svg .loopLine {
+    stroke: #64748b !important;
+    stroke-width: 2px !important;
+}
+
+/* Fond des blocs loop/alt/opt */
+.mermaid rect.loopBox,
+.mermaid .loopBox,
+.mermaid svg .loopBox {
+    fill: #f8fafc !important;
+    stroke: #64748b !important;
+    stroke-width: 1.5px !important;
+}
+
+.mermaid .loopText,
+.mermaid .loopText tspan,
+.mermaid svg .loopText,
+.mermaid svg .loopText tspan {
+    fill: #1e293b !important;
+    color: #1e293b !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+/* Label box (loop, alt, opt, etc.) - FOND PASTEL VERT */
+.mermaid .labelBox,
+.mermaid svg .labelBox {
+    fill: #dcfce7 !important;
+    stroke: #22c55e !important;
+    stroke-width: 1.5px !important;
+}
+
+.mermaid .labelText,
+.mermaid .labelText tspan,
+.mermaid svg .labelText,
+.mermaid svg .labelText tspan {
+    fill: #14532d !important;
+    color: #14532d !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+/* Notes dans les diagrammes de séquence - FOND PASTEL JAUNE */
+.mermaid .note,
+.mermaid svg .note,
+.mermaid rect.note {
+    fill: #fef9c3 !important;
+    stroke: #ca8a04 !important;
+    stroke-width: 2px !important;
+}
+
+.mermaid .noteText,
+.mermaid .noteText tspan,
+.mermaid svg .noteText,
+.mermaid svg .noteText tspan {
+    fill: #713f12 !important;
+    color: #713f12 !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+/* Numéros de séquence - FOND SOMBRE avec texte BLANC */
+.mermaid .sequenceNumber,
+.mermaid svg .sequenceNumber {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+
+.mermaid .sequenceNumber-rect,
+.mermaid svg rect.sequenceNumber-rect {
+    fill: #374151 !important;
+    stroke: #1f2937 !important;
+}
+
+/* ============================================
+   Entity Relationship Diagram Styles
+   ============================================ */
+.mermaid .er.entityBox,
+.mermaid .entityBox,
+.mermaid svg .er.entityBox,
+.mermaid svg .entityBox,
+.mermaid svg rect.er {
+    fill: #dbeafe !important;
+    stroke: #3b82f6 !important;
+    stroke-width: 2px !important;
+}
+
+.mermaid .er.entityLabel,
+.mermaid .entityLabel,
+.mermaid svg .er.entityLabel,
+.mermaid svg .entityLabel,
+.mermaid svg text.er {
+    fill: #1e3a8a !important;
+    color: #1e3a8a !important;
+    font-weight: 600 !important;
+}
+
+.mermaid .er.attributeBoxEven,
+.mermaid svg .er.attributeBoxEven {
+    fill: #f8fafc !important;
+    stroke: #cbd5e1 !important;
+}
+
+.mermaid .er.attributeBoxOdd,
+.mermaid svg .er.attributeBoxOdd {
+    fill: #f1f5f9 !important;
+    stroke: #cbd5e1 !important;
+}
+
+.mermaid .er text,
+.mermaid svg g.er text,
+.mermaid svg .erDiagram text {
+    fill: #1e293b !important;
+    color: #1e293b !important;
+}
+
+.mermaid .er.relationshipLine,
+.mermaid svg .er.relationshipLine {
+    stroke: #64748b !important;
+    stroke-width: 1.5px !important;
+}
+
+.mermaid .er.relationshipLabel,
+.mermaid svg .er.relationshipLabel {
+    fill: #475569 !important;
+}
+
+/* ============================================
+   Mindmap Diagram Styles
+   ============================================ */
+.mermaid .mindmap-node rect,
+.mermaid .mindmap-node circle,
+.mermaid .mindmap-node ellipse,
+.mermaid .mindmap-node polygon,
+.mermaid svg .mindmap-node rect,
+.mermaid svg .mindmap-node circle,
+.mermaid svg .mindmap-node ellipse {
+    stroke-width: 2px !important;
+}
+
+/* Forcer des couleurs pastel lisibles sur les mindmaps */
+.mermaid .mindmap-node:nth-child(7n+1) rect,
+.mermaid .mindmap-node:nth-child(7n+1) circle,
+.mermaid .mindmap-node:nth-child(7n+1) ellipse {
+    fill: #dbeafe !important;
+    stroke: #3b82f6 !important;
+}
+.mermaid .mindmap-node:nth-child(7n+1) text,
+.mermaid .mindmap-node:nth-child(7n+1) .nodeLabel {
+    fill: #1e3a8a !important;
+    color: #1e3a8a !important;
+}
+
+.mermaid .mindmap-node:nth-child(7n+2) rect,
+.mermaid .mindmap-node:nth-child(7n+2) circle,
+.mermaid .mindmap-node:nth-child(7n+2) ellipse {
+    fill: #dcfce7 !important;
+    stroke: #22c55e !important;
+}
+.mermaid .mindmap-node:nth-child(7n+2) text,
+.mermaid .mindmap-node:nth-child(7n+2) .nodeLabel {
+    fill: #14532d !important;
+    color: #14532d !important;
+}
+
+.mermaid .mindmap-node:nth-child(7n+3) rect,
+.mermaid .mindmap-node:nth-child(7n+3) circle,
+.mermaid .mindmap-node:nth-child(7n+3) ellipse {
+    fill: #fef9c3 !important;
+    stroke: #eab308 !important;
+}
+.mermaid .mindmap-node:nth-child(7n+3) text,
+.mermaid .mindmap-node:nth-child(7n+3) .nodeLabel {
+    fill: #713f12 !important;
+    color: #713f12 !important;
+}
+
+.mermaid .mindmap-node:nth-child(7n+4) rect,
+.mermaid .mindmap-node:nth-child(7n+4) circle,
+.mermaid .mindmap-node:nth-child(7n+4) ellipse {
+    fill: #fce7f3 !important;
+    stroke: #ec4899 !important;
+}
+.mermaid .mindmap-node:nth-child(7n+4) text,
+.mermaid .mindmap-node:nth-child(7n+4) .nodeLabel {
+    fill: #831843 !important;
+    color: #831843 !important;
+}
+
+.mermaid .mindmap-node:nth-child(7n+5) rect,
+.mermaid .mindmap-node:nth-child(7n+5) circle,
+.mermaid .mindmap-node:nth-child(7n+5) ellipse {
+    fill: #f3e8ff !important;
+    stroke: #a855f7 !important;
+}
+.mermaid .mindmap-node:nth-child(7n+5) text,
+.mermaid .mindmap-node:nth-child(7n+5) .nodeLabel {
+    fill: #581c87 !important;
+    color: #581c87 !important;
+}
+
+.mermaid .mindmap-node:nth-child(7n+6) rect,
+.mermaid .mindmap-node:nth-child(7n+6) circle,
+.mermaid .mindmap-node:nth-child(7n+6) ellipse {
+    fill: #cffafe !important;
+    stroke: #06b6d4 !important;
+}
+.mermaid .mindmap-node:nth-child(7n+6) text,
+.mermaid .mindmap-node:nth-child(7n+6) .nodeLabel {
+    fill: #164e63 !important;
+    color: #164e63 !important;
+}
+
+.mermaid .mindmap-node:nth-child(7n) rect,
+.mermaid .mindmap-node:nth-child(7n) circle,
+.mermaid .mindmap-node:nth-child(7n) ellipse {
+    fill: #ffedd5 !important;
+    stroke: #f97316 !important;
+}
+.mermaid .mindmap-node:nth-child(7n) text,
+.mermaid .mindmap-node:nth-child(7n) .nodeLabel {
+    fill: #7c2d12 !important;
+    color: #7c2d12 !important;
+}
+
+/* Texte mindmap global - fallback */
+.mermaid .mindmap text,
+.mermaid svg [class*="mindmap"] text {
+    font-weight: 500 !important;
+}
+
+/* Liens mindmap */
+.mermaid .mindmap-edge,
+.mermaid svg .mindmap-edge {
+    stroke: #64748b !important;
+    stroke-width: 1.5px !important;
+}
+
+/* Forcer Mermaid à respecter le conteneur */
+.mermaid[data-processed="true"] {
+    min-height: 0 !important;
+}
+
+/* ============================================
+   Diagram Placeholder (pour illustrations)
+   ============================================ */
+.diagram {
+    background: var(--color-gray-50);
+    border: 2px dashed var(--color-gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 150px;
+    flex: 1;
+}
+
+.diagram--placeholder {
+    background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+}
+
+.diagram .icon {
+    font-size: 48px;
+    margin-bottom: var(--space-sm);
+    opacity: 0.6;
+}
+
+.diagram .text {
+    font-size: 14px;
+    color: var(--color-gray-500);
+    font-weight: 500;
+}
+
+/* ============================================
+   Architecture Diagram Placeholder Styles
+   ============================================ */
+.arch-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.arch-layer {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+}
+
+.arch-box {
+    background: var(--color-gray-100);
+    border: 2px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-gray-700);
+    text-align: center;
+    min-width: 100px;
+}
+
+.arch-box--primary {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+}
+
+.arch-box--accent {
+    background: rgba(249, 115, 22, 0.15);
+    border-color: var(--color-accent);
+    color: #c2410c;
+}
+
+.arch-box--success {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--color-success);
+    color: #047857;
+}
+
+.arch-box--info {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--color-info);
+    color: #4338ca;
+}
+
+.arch-box--dark {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+    color: white;
+}
+
+.arch-connector {
+    display: flex;
+    justify-content: center;
+    color: var(--color-gray-400);
+    font-size: 20px;
+}
+
+/* ============================================
+   Flow Diagram Styles
+   ============================================ */
+.flow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.flow__item {
+    background: var(--color-gray-100);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-md);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-gray-700);
+}
+
+.flow__item--highlight {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.flow__arrow {
+    color: var(--color-gray-400);
+    font-size: 18px;
+}
+
+/* ============================================
+   Timeline / Process Styles
+   ============================================ */
+.timeline {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: stretch;
+}
+
+.timeline__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.timeline__item:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: calc(var(--space-lg) / -2 - 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-gray-400);
+    font-size: 20px;
+}
+
+.timeline__number {
+    width: 28px;
+    height: 28px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+}
+
+.timeline__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin-bottom: var(--space-xs);
+}
+
+.timeline__text {
+    font-size: 12px;
+    color: var(--color-gray-600);
+    line-height: 1.4;
+}
+
+/* ============================================
+   Stat / KPI Cards
+   ============================================ */
+.stat {
+    text-align: center;
+    padding: var(--space-md);
+}
+
+.stat__value {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.stat__label {
+    font-size: 13px;
+    color: var(--color-gray-600);
+    margin-top: var(--space-xs);
+}
+
+.stat--small .stat__value {
+    font-size: 24px;
+}
+
+/* ============================================
+   Icon Styles
+   ============================================ */
+.icon-box {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.icon-box--sm {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 18px;
+}
+
+.icon-box--lg {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    font-size: 32px;
+}
+
+.icon-box--accent {
+    background: linear-gradient(135deg, var(--color-accent) 0%, #ea580c 100%);
+}
+
+.icon-box--success {
+    background: linear-gradient(135deg, var(--color-success) 0%, #047857 100%);
+}
+
+.icon-box--info {
+    background: linear-gradient(135deg, var(--color-info) 0%, #4338ca 100%);
+}
+
+/* ============================================
+   Logo Superset
+   ============================================ */
+.superset-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.superset-logo__icon {
+    width: 80px;
+    height: 80px;
+}
+
+.superset-logo__icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.superset-logo__text {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.superset-logo__text span {
+    color: var(--color-primary);
+}
+
+/* ============================================
+   Comparison Table Enhancements
+   ============================================ */
+.comparison-table {
+    font-size: 12px;
+}
+
+.comparison-table th {
+    font-size: 11px;
+    padding: 8px 10px;
+}
+
+.comparison-table td {
+    padding: 6px 10px;
+    vertical-align: middle;
+}
+
+.comparison-table .product-name {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.comparison-table .check {
+    color: var(--color-success);
+    font-weight: bold;
+}
+
+.comparison-table .cross {
+    color: var(--color-danger);
+    font-weight: bold;
+}
+
+.comparison-table .partial {
+    color: var(--color-warning);
+    font-weight: bold;
+}
+
+/* ============================================
+   Use Case Cards
+   ============================================ */
+.use-case {
+    background: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.use-case--positive {
+    border-color: var(--color-success);
+    border-left-width: 4px;
+}
+
+.use-case--negative {
+    border-color: var(--color-danger);
+    border-left-width: 4px;
+}
+
+.use-case__number {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--color-gray-300);
+}
+
+.use-case__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gray-900);
+}
+
+.use-case__text {
+    font-size: 12px;
+    color: var(--color-gray-600);
+    line-height: 1.4;
+}
+
+/* ============================================
+   Data Stack Layer Visualization
+   ============================================ */
+.stack-layer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-gray-50);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+}
+
+.stack-layer__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-gray-500);
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.stack-layer__items {
+    display: flex;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.stack-layer__item {
+    background: white;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-gray-700);
+}
+
+.stack-layer__item--highlight {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+}
+
+/* ============================================
+   Permissions Matrix
+   ============================================ */
+.permission-matrix {
+    font-size: 12px;
+}
+
+.permission-matrix th:first-child {
+    text-align: left;
+}
+
+.permission-matrix td:not(:first-child),
+.permission-matrix th:not(:first-child) {
+    text-align: center;
+    width: 80px;
+}
+
+.permission-matrix .action {
+    font-weight: 500;
+    text-align: left;
+}
+
+/* ============================================
+   Sources & Links
+   ============================================ */
+.sources {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+}
+
+.source-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.source-group__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--color-gray-200);
+    margin-bottom: var(--space-xs);
+}
+
+.source-link {
+    font-size: 12px;
+    color: var(--color-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.source-link:hover {
+    text-decoration: underline;
+}
+
+.source-link::before {
+    content: '→';
+    color: var(--color-gray-400);
+}
+
+/* ============================================
+   Print Optimizations for Diagrams
+   ============================================ */
+@media print {
+    .mermaid-container,
+    .arch-diagram,
+    .diagram {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    .arch-box,
+    .flow__item,
+    .timeline__number,
+    .icon-box,
+    .stat__value {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+/* ============================================
+   Mermaid Contrast Color Palettes
+   Fonds pastel avec texte noir
+   Fonds sombres avec texte blanc
+   ============================================ */
+
+/* Palette Pastel - Texte Noir */
+.mermaid .node.pastel-blue rect,
+.mermaid .node.pastel-blue polygon { fill: #dbeafe !important; stroke: #3b82f6 !important; }
+.mermaid .node.pastel-blue .nodeLabel { fill: #1e3a8a !important; color: #1e3a8a !important; }
+
+.mermaid .node.pastel-green rect,
+.mermaid .node.pastel-green polygon { fill: #dcfce7 !important; stroke: #22c55e !important; }
+.mermaid .node.pastel-green .nodeLabel { fill: #14532d !important; color: #14532d !important; }
+
+.mermaid .node.pastel-yellow rect,
+.mermaid .node.pastel-yellow polygon { fill: #fef9c3 !important; stroke: #eab308 !important; }
+.mermaid .node.pastel-yellow .nodeLabel { fill: #713f12 !important; color: #713f12 !important; }
+
+.mermaid .node.pastel-orange rect,
+.mermaid .node.pastel-orange polygon { fill: #ffedd5 !important; stroke: #f97316 !important; }
+.mermaid .node.pastel-orange .nodeLabel { fill: #7c2d12 !important; color: #7c2d12 !important; }
+
+.mermaid .node.pastel-pink rect,
+.mermaid .node.pastel-pink polygon { fill: #fce7f3 !important; stroke: #ec4899 !important; }
+.mermaid .node.pastel-pink .nodeLabel { fill: #831843 !important; color: #831843 !important; }
+
+.mermaid .node.pastel-purple rect,
+.mermaid .node.pastel-purple polygon { fill: #f3e8ff !important; stroke: #a855f7 !important; }
+.mermaid .node.pastel-purple .nodeLabel { fill: #581c87 !important; color: #581c87 !important; }
+
+.mermaid .node.pastel-cyan rect,
+.mermaid .node.pastel-cyan polygon { fill: #cffafe !important; stroke: #06b6d4 !important; }
+.mermaid .node.pastel-cyan .nodeLabel { fill: #164e63 !important; color: #164e63 !important; }
+
+/* Palette Sombre - Texte Blanc */
+.mermaid .node.dark-blue rect,
+.mermaid .node.dark-blue polygon { fill: #1e3a5f !important; stroke: #0c4a6e !important; }
+.mermaid .node.dark-blue .nodeLabel { fill: #ffffff !important; color: #ffffff !important; }
+
+.mermaid .node.dark-green rect,
+.mermaid .node.dark-green polygon { fill: #14532d !important; stroke: #166534 !important; }
+.mermaid .node.dark-green .nodeLabel { fill: #ffffff !important; color: #ffffff !important; }
+
+.mermaid .node.dark-purple rect,
+.mermaid .node.dark-purple polygon { fill: #4c1d95 !important; stroke: #5b21b6 !important; }
+.mermaid .node.dark-purple .nodeLabel { fill: #ffffff !important; color: #ffffff !important; }
+
+.mermaid .node.dark-gray rect,
+.mermaid .node.dark-gray polygon { fill: #374151 !important; stroke: #4b5563 !important; }
+.mermaid .node.dark-gray .nodeLabel { fill: #ffffff !important; color: #ffffff !important; }
+
+.mermaid .node.dark-slate rect,
+.mermaid .node.dark-slate polygon { fill: #1e293b !important; stroke: #334155 !important; }
+.mermaid .node.dark-slate .nodeLabel { fill: #ffffff !important; color: #ffffff !important; }
+
+/* ============================================
+   Force Contrast on All Mermaid Elements
+   ============================================ */
+
+/* Assurer le contraste sur tous les types de nodes */
+.mermaid g[style*="fill: #"] .nodeLabel,
+.mermaid g[style*="fill:#"] .nodeLabel {
+    text-shadow: none !important;
+}
+
+/* Forcer le texte noir sur fonds clairs */
+.mermaid [style*="fill: #f"][style*="fill: #f"] .nodeLabel,
+.mermaid [style*="fill: #e"][style*="fill: #e"] .nodeLabel,
+.mermaid [style*="fill: #d"][style*="fill: #d"] .nodeLabel,
+.mermaid [style*="fill: #c"][style*="fill: #c"] .nodeLabel,
+.mermaid [style*="fill: rgb(2"][style*="fill: rgb(2"] .nodeLabel {
+    fill: #1e293b !important;
+    color: #1e293b !important;
+}
+
+/* Images dans le dossier target/images */
+img[src*="images/"] {
+    max-width: 100%;
+    max-height: 450px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 1.5rem auto;
+}
+
+/* Captures d'écran Superset */
+img[src*="screenshot"],
+img[src*="superset.apache.org"],
+img[src*="capture"] {
+    max-width: 100%;
+    max-height: 400px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e4e4e7;
+}
+
+/* Limiter les grandes images */
+.content-image,
+.screenshot {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+}
+
+    </style>
+    
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof mermaid !== 'undefined') {
+                mermaid.initialize({
+                    startOnLoad: true,
+                    theme: 'default',
+                    securityLevel: 'loose',
+                    flowchart: {
+                        useMaxWidth: false,
+                        htmlLabels: true
+                    },
+                    sequence: {
+                        useMaxWidth: false
+                    }
+                });
+            }
+        });
+    </script>
+    
+    
+    <script>
+/**
+ * Mermaid Contrast Fix
+ * Corrige automatiquement le contraste texte/fond dans les diagrammes Mermaid
+ * 
+ * Règles de contraste :
+ * - Fonds pastel (clairs) → texte noir (#1e293b)
+ * - Fonds sombres → texte blanc (#ffffff)
+ */
+
+// Palette de couleurs pastel avec bon contraste
+const PASTEL_COLORS = {
+    blue: { bg: '#dbeafe', border: '#3b82f6', text: '#1e3a8a' },
+    green: { bg: '#dcfce7', border: '#22c55e', text: '#14532d' },
+    yellow: { bg: '#fef9c3', border: '#eab308', text: '#713f12' },
+    orange: { bg: '#ffedd5', border: '#f97316', text: '#7c2d12' },
+    pink: { bg: '#fce7f3', border: '#ec4899', text: '#831843' },
+    purple: { bg: '#f3e8ff', border: '#a855f7', text: '#581c87' },
+    cyan: { bg: '#cffafe', border: '#06b6d4', text: '#164e63' },
+    gray: { bg: '#f4f4f5', border: '#71717a', text: '#27272a' }
+};
+
+// Palette de couleurs sombres avec bon contraste
+const DARK_COLORS = {
+    blue: { bg: '#1e3a5f', border: '#0c4a6e', text: '#ffffff' },
+    green: { bg: '#14532d', border: '#166534', text: '#ffffff' },
+    purple: { bg: '#4c1d95', border: '#5b21b6', text: '#ffffff' },
+    gray: { bg: '#374151', border: '#4b5563', text: '#ffffff' },
+    slate: { bg: '#1e293b', border: '#334155', text: '#ffffff' }
+};
+
+function fixMermaidContrast() {
+    // Fonction pour calculer la luminosité relative d'une couleur
+    function getLuminance(hex) {
+        // Convertir hex en RGB
+        let r, g, b;
+        if (!hex || hex === 'none' || hex === 'transparent') {
+            return 0.5;
+        }
+        if (hex.startsWith('rgb')) {
+            const match = hex.match(/\d+/g);
+            if (match) {
+                r = parseInt(match[0]);
+                g = parseInt(match[1]);
+                b = parseInt(match[2]);
+            } else {
+                return 0.5;
+            }
+        } else {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            if (hex.length !== 6) {
+                return 0.5;
+            }
+            r = parseInt(hex.substr(0, 2), 16);
+            g = parseInt(hex.substr(2, 2), 16);
+            b = parseInt(hex.substr(4, 2), 16);
+        }
+
+        if (isNaN(r) || isNaN(g) || isNaN(b)) {
+            return 0.5;
+        }
+
+        // Formule de luminosité relative (WCAG)
+        const rsRGB = r / 255;
+        const gsRGB = g / 255;
+        const bsRGB = b / 255;
+
+        const rLum = rsRGB <= 0.03928 ? rsRGB / 12.92 : Math.pow((rsRGB + 0.055) / 1.055, 2.4);
+        const gLum = gsRGB <= 0.03928 ? gsRGB / 12.92 : Math.pow((gsRGB + 0.055) / 1.055, 2.4);
+        const bLum = bsRGB <= 0.03928 ? bsRGB / 12.92 : Math.pow((bsRGB + 0.055) / 1.055, 2.4);
+
+        return 0.2126 * rLum + 0.7152 * gLum + 0.0722 * bLum;
+    }
+
+    // Fonction pour déterminer si le texte doit être clair ou sombre
+    // Seuil ajusté pour meilleur contraste WCAG AA
+    function getContrastColor(bgColor) {
+        const luminance = getLuminance(bgColor);
+        // Seuil de 0.35 pour assurer un bon contraste (WCAG AA)
+        return luminance > 0.35 ? '#1e293b' : '#ffffff';
+    }
+    
+    // Fonction pour appliquer la couleur de contraste à un élément texte
+    function applyContrastToText(textEl, contrastColor) {
+        textEl.style.setProperty('color', contrastColor, 'important');
+        textEl.style.setProperty('fill', contrastColor, 'important');
+        textEl.setAttribute('fill', contrastColor);
+        // Aussi les tspan à l'intérieur
+        textEl.querySelectorAll('tspan').forEach(function(tspan) {
+            tspan.style.setProperty('fill', contrastColor, 'important');
+            tspan.setAttribute('fill', contrastColor);
+        });
+    }
+
+    // Parcourir tous les SVG Mermaid
+    document.querySelectorAll('.mermaid svg').forEach(function(svg) {
+        
+        // === FIX POUR LES TITRES DE CLUSTERS SUR PLUSIEURS LIGNES ===
+        svg.querySelectorAll('.cluster').forEach(function(cluster) {
+            const label = cluster.querySelector('.cluster-label');
+            const rect = cluster.querySelector('rect');
+            
+            if (label && rect) {
+                // Récupérer la hauteur du label
+                const labelBBox = label.getBBox ? label.getBBox() : null;
+                const foreignObj = label.querySelector('foreignObject');
+                
+                if (foreignObj) {
+                    // Augmenter l'espace vertical pour le titre
+                    const currentHeight = parseFloat(foreignObj.getAttribute('height')) || 20;
+                    const textContent = foreignObj.textContent || '';
+                    
+                    // Si le texte semble long (plus de 20 caractères), augmenter la hauteur
+                    if (textContent.length > 20 || textContent.includes('\n')) {
+                        foreignObj.setAttribute('height', Math.max(currentHeight, 40));
+                        foreignObj.style.overflow = 'visible';
+                    }
+                }
+                
+                // Forcer le texte du label à être visible et bien contrasté
+                label.querySelectorAll('text, span, div, p, tspan').forEach(function(textEl) {
+                    textEl.style.setProperty('fill', '#1e293b', 'important');
+                    textEl.style.setProperty('color', '#1e293b', 'important');
+                    textEl.style.setProperty('font-weight', '700', 'important');
+                });
+            }
+        });
+        
+        // === CORRECTION GÉNÉRALE DES NODES ===
+        // Corriger les nodes (rectangles, cercles, etc.)
+        svg.querySelectorAll('.node rect, .node polygon, .node circle, .node ellipse').forEach(function(shape) {
+            const fill = shape.getAttribute('fill') || shape.style.fill;
+            if (fill && fill !== 'none' && fill !== 'transparent') {
+                const contrastColor = getContrastColor(fill);
+
+                // Trouver le label associé
+                const parent = shape.closest('.node');
+                if (parent) {
+                    parent.querySelectorAll('.nodeLabel, .label, text, foreignObject span, foreignObject p, foreignObject div').forEach(function(label) {
+                        applyContrastToText(label, contrastColor);
+                    });
+                }
+            }
+        });
+
+        // Corriger les clusters/subgraphs
+        svg.querySelectorAll('.cluster rect, .cluster polygon').forEach(function(shape) {
+            const fill = shape.getAttribute('fill') || shape.style.fill;
+            if (fill && fill !== 'none' && fill !== 'transparent') {
+                const contrastColor = getContrastColor(fill);
+
+                const parent = shape.closest('.cluster');
+                if (parent) {
+                    parent.querySelectorAll('.cluster-label, .cluster-label span, .cluster-label text, .nodeLabel, text').forEach(function(label) {
+                        applyContrastToText(label, contrastColor);
+                    });
+                }
+            }
+        });
+
+        // === FIX POUR LES ÉLÉMENTS AVEC STYLE INLINE ===
+        svg.querySelectorAll('[style*="fill"]').forEach(function(el) {
+            const style = el.getAttribute('style');
+            if (style) {
+                const fillMatch = style.match(/fill:\s*([^;]+)/i);
+                if (fillMatch) {
+                    const fill = fillMatch[1].trim();
+                    if (fill && fill !== 'none' && fill !== 'transparent' && !fill.startsWith('url')) {
+                        const contrastColor = getContrastColor(fill);
+
+                        // Chercher les éléments texte à l'intérieur
+                        el.querySelectorAll('text, span, p, div, .nodeLabel, .label').forEach(function(textEl) {
+                            applyContrastToText(textEl, contrastColor);
+                        });
+
+                        // Si l'élément lui-même est un groupe avec du texte
+                        if (el.tagName.toLowerCase() === 'g') {
+                            el.querySelectorAll('foreignObject *').forEach(function(fo) {
+                                fo.style.setProperty('color', contrastColor, 'important');
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        // === FIX POUR LES DIAGRAMMES FLOWCHART ===
+        // Rectangles et formes avec texte
+        svg.querySelectorAll('g.node').forEach(function(node) {
+            const shape = node.querySelector('rect, polygon, circle, ellipse, path');
+            if (shape) {
+                const fill = shape.getAttribute('fill') || shape.style.fill || 
+                             window.getComputedStyle(shape).fill;
+                if (fill && fill !== 'none' && fill !== 'transparent' && !fill.startsWith('url')) {
+                    const contrastColor = getContrastColor(fill);
+                    node.querySelectorAll('.nodeLabel, .label, text, span, div, p').forEach(function(label) {
+                        applyContrastToText(label, contrastColor);
+                    });
+                }
+            }
+        });
+
+        // === FIX POUR LES DIAGRAMMES DE SÉQUENCE ===
+        
+        // Acteurs boîtes : forcer fond FONCÉ avec texte BLANC
+        svg.querySelectorAll('.actor, rect.actor, .actor-top, .actor-bottom').forEach(function(rect) {
+            rect.style.setProperty('fill', DARK_COLORS.blue.bg, 'important');
+            rect.style.setProperty('stroke', DARK_COLORS.blue.border, 'important');
+            rect.setAttribute('fill', DARK_COLORS.blue.bg);
+            rect.setAttribute('stroke', DARK_COLORS.blue.border);
+        });
+        
+        // Acteurs texte : forcer BLANC sur fond foncé
+        svg.querySelectorAll('text.actor, .actor-man').forEach(function(text) {
+            applyContrastToText(text, DARK_COLORS.blue.text);
+        });
+
+        // Messages : forcer texte NOIR (fond blanc/transparent)
+        svg.querySelectorAll('.messageText').forEach(function(text) {
+            applyContrastToText(text, '#1e293b');
+            text.style.setProperty('stroke', 'none', 'important');
+        });
+
+        // Lignes de messages : forcer visibilité
+        svg.querySelectorAll('.messageLine0, .messageLine1').forEach(function(line) {
+            line.style.setProperty('stroke', '#334155', 'important');
+            line.style.setProperty('stroke-width', '2px', 'important');
+            line.setAttribute('stroke', '#334155');
+            line.setAttribute('stroke-width', '2');
+        });
+
+        // Flèches : forcer visibilité
+        svg.querySelectorAll('.arrowhead path, marker path, #arrowhead path').forEach(function(arrow) {
+            arrow.style.setProperty('fill', '#334155', 'important');
+            arrow.style.setProperty('stroke', '#334155', 'important');
+            arrow.setAttribute('fill', '#334155');
+            arrow.setAttribute('stroke', '#334155');
+        });
+        
+        // Aussi les markers directement
+        svg.querySelectorAll('marker').forEach(function(marker) {
+            marker.querySelectorAll('path, polygon').forEach(function(shape) {
+                shape.style.setProperty('fill', '#334155', 'important');
+                shape.setAttribute('fill', '#334155');
+            });
+        });
+
+        // Lignes de vie des acteurs
+        svg.querySelectorAll('.actor-line').forEach(function(line) {
+            line.style.setProperty('stroke', '#64748b', 'important');
+            line.style.setProperty('stroke-width', '1.5px', 'important');
+            line.setAttribute('stroke', '#64748b');
+        });
+
+        // Labels (boucles, alt, opt, etc.)
+        svg.querySelectorAll('.loopText, .labelText').forEach(function(text) {
+            text.style.setProperty('fill', '#334155', 'important');
+            text.setAttribute('fill', '#334155');
+        });
+        svg.querySelectorAll('.loopText tspan, .labelText tspan').forEach(function(tspan) {
+            tspan.style.setProperty('fill', '#334155', 'important');
+            tspan.setAttribute('fill', '#334155');
+        });
+
+        // Notes - fond pastel jaune avec texte foncé
+        svg.querySelectorAll('.note rect, rect.note').forEach(function(rect) {
+            rect.style.setProperty('fill', PASTEL_COLORS.yellow.bg, 'important');
+            rect.style.setProperty('stroke', PASTEL_COLORS.yellow.border, 'important');
+            rect.setAttribute('fill', PASTEL_COLORS.yellow.bg);
+        });
+        svg.querySelectorAll('.noteText, .noteText tspan').forEach(function(text) {
+            applyContrastToText(text, PASTEL_COLORS.yellow.text);
+        });
+        
+        // Numéros de séquence
+        svg.querySelectorAll('.sequenceNumber').forEach(function(text) {
+            applyContrastToText(text, '#1e293b');
+        });
+        
+        // === FIX POUR DIAGRAMMES CLASS ===
+        svg.querySelectorAll('.classGroup rect, .classGroup polygon').forEach(function(shape) {
+            const fill = shape.getAttribute('fill') || shape.style.fill;
+            if (fill && fill !== 'none' && fill !== 'transparent') {
+                const contrastColor = getContrastColor(fill);
+                const parent = shape.closest('.classGroup');
+                if (parent) {
+                    parent.querySelectorAll('text, .classTitle, .classLabel, tspan').forEach(function(label) {
+                        applyContrastToText(label, contrastColor);
+                    });
+                }
+            }
+        });
+        
+        // === FIX POUR DIAGRAMMES STATE ===
+        svg.querySelectorAll('.stateGroup rect, .statediagram-state rect').forEach(function(shape) {
+            const fill = shape.getAttribute('fill') || shape.style.fill;
+            if (fill && fill !== 'none' && fill !== 'transparent') {
+                const contrastColor = getContrastColor(fill);
+                const parent = shape.closest('.stateGroup, .statediagram-state');
+                if (parent) {
+                    parent.querySelectorAll('text, .stateLabel, tspan, span').forEach(function(label) {
+                        applyContrastToText(label, contrastColor);
+                    });
+                }
+            }
+        });
+        
+        // === FIX POUR DIAGRAMMES ER ===
+        // Entity boxes - forcer fond coloré avec texte lisible
+        svg.querySelectorAll('.er.entityBox, .entityBox, rect.er').forEach(function(shape) {
+            // Forcer un fond pastel bleu avec texte foncé
+            shape.style.setProperty('fill', '#dbeafe', 'important');
+            shape.style.setProperty('stroke', '#3b82f6', 'important');
+            shape.style.setProperty('stroke-width', '2px', 'important');
+            shape.setAttribute('fill', '#dbeafe');
+            shape.setAttribute('stroke', '#3b82f6');
+        });
+        
+        // Texte des entités ER - forcer noir
+        svg.querySelectorAll('.er.entityLabel, .entityLabel, text.er').forEach(function(text) {
+            applyContrastToText(text, '#1e3a8a');
+        });
+        
+        // Attributs ER
+        svg.querySelectorAll('.er.attributeBoxEven, .er.attributeBoxOdd').forEach(function(shape) {
+            const isEven = shape.classList.contains('attributeBoxEven');
+            shape.style.setProperty('fill', isEven ? '#f8fafc' : '#f1f5f9', 'important');
+            shape.style.setProperty('stroke', '#cbd5e1', 'important');
+        });
+        
+        // Tout le texte dans les diagrammes ER
+        svg.querySelectorAll('g.er text, .erDiagram text').forEach(function(text) {
+            const fill = text.getAttribute('fill') || text.style.fill;
+            const lum = getLuminance(fill);
+            // Si texte trop clair, forcer noir
+            if (lum > 0.6 || !fill || fill === 'none') {
+                applyContrastToText(text, '#1e293b');
+            }
+        });
+        
+        // === FIX POUR DIAGRAMMES MINDMAP ===
+        // Forcer des couleurs visibles sur les nodes mindmap
+        const mindmapColors = [
+            { bg: '#dbeafe', border: '#3b82f6', text: '#1e3a8a' },  // blue
+            { bg: '#dcfce7', border: '#22c55e', text: '#14532d' },  // green
+            { bg: '#fef9c3', border: '#eab308', text: '#713f12' },  // yellow
+            { bg: '#fce7f3', border: '#ec4899', text: '#831843' },  // pink
+            { bg: '#f3e8ff', border: '#a855f7', text: '#581c87' },  // purple
+            { bg: '#cffafe', border: '#06b6d4', text: '#164e63' },  // cyan
+            { bg: '#ffedd5', border: '#f97316', text: '#7c2d12' }   // orange
+        ];
+        
+        let colorIndex = 0;
+        svg.querySelectorAll('.mindmap-node').forEach(function(node) {
+            const shape = node.querySelector('rect, circle, ellipse, polygon, path');
+            if (shape) {
+                const color = mindmapColors[colorIndex % mindmapColors.length];
+                shape.style.setProperty('fill', color.bg, 'important');
+                shape.style.setProperty('stroke', color.border, 'important');
+                shape.style.setProperty('stroke-width', '2px', 'important');
+                shape.setAttribute('fill', color.bg);
+                shape.setAttribute('stroke', color.border);
+                
+                // Appliquer le texte contrasté
+                node.querySelectorAll('text, span, .nodeLabel, foreignObject *').forEach(function(label) {
+                    applyContrastToText(label, color.text);
+                });
+                colorIndex++;
+            }
+        });
+        
+        // Fallback: tous les textes mindmap sans shape parent
+        svg.querySelectorAll('.mindmap text, [class*="mindmap"] text').forEach(function(text) {
+            const fill = text.getAttribute('fill') || text.style.fill;
+            const lum = getLuminance(fill);
+            if (lum > 0.6 || !fill || fill === 'none') {
+                applyContrastToText(text, '#1e293b');
+            }
+        });
+        
+        // === DERNIER PASSAGE GLOBAL ===
+        // Parcourir tous les éléments rect/polygon/circle avec fill et vérifier leurs textes
+        svg.querySelectorAll('rect, polygon, circle, ellipse').forEach(function(shape) {
+            const fill = shape.getAttribute('fill') || shape.style.fill;
+            if (fill && fill !== 'none' && fill !== 'transparent' && !fill.startsWith('url')) {
+                const luminance = getLuminance(fill);
+                // Si fond sombre (luminance < 0.35) et texte potentiellement sombre
+                if (luminance < 0.35) {
+                    const parent = shape.parentNode;
+                    if (parent) {
+                        parent.querySelectorAll('text, .nodeLabel, .label, span, tspan').forEach(function(textEl) {
+                            const textFill = textEl.getAttribute('fill') || textEl.style.fill;
+                            const textLum = getLuminance(textFill);
+                            // Si le texte est aussi sombre, on le passe en blanc
+                            if (textLum < 0.5) {
+                                applyContrastToText(textEl, '#ffffff');
+                            }
+                        });
+                    }
+                }
+                // Si fond clair et texte blanc
+                else if (luminance > 0.65) {
+                    const parent = shape.parentNode;
+                    if (parent) {
+                        parent.querySelectorAll('text, .nodeLabel, .label, span, tspan').forEach(function(textEl) {
+                            const textFill = textEl.getAttribute('fill') || textEl.style.fill;
+                            const textLum = getLuminance(textFill);
+                            // Si le texte est clair, on le passe en noir
+                            if (textLum > 0.7) {
+                                applyContrastToText(textEl, '#1e293b');
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    });
+}
+
+// Exporter pour utilisation externe
+if (typeof window !== 'undefined') {
+    window.fixMermaidContrast = fixMermaidContrast;
+    window.MERMAID_PASTEL_COLORS = PASTEL_COLORS;
+    window.MERMAID_DARK_COLORS = DARK_COLORS;
+}
+
+    </script>
+    
+    
+    
+    
+    
+    <style>
+        @media print {
+            body {
+                max-width: none;
+                padding: 20mm;
+            }
+            
+            pre, code {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+            
+            table, pre, blockquote, .mermaid {
+                page-break-inside: avoid;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    
+    <article class="markdown-body">
+        <h1 id="module-21-merge-vs-rebase">Module 2.1 — Merge vs Rebase</h1>
+<blockquote>
+<p>À la fin de ce module, vous saurez :
+- Distinguer une fusion <strong>fast-forward</strong> d'une fusion avec <strong>commit de merge</strong> et forcer ce dernier avec <code>--no-ff</code>.
+- Décrire en une phrase ce que produit un <code>rebase</code> sur le DAG et en quoi il diffère d'un <code>merge</code>.
+- Choisir merge ou rebase selon le contexte à l'aide d'un arbre de décision.
+- Réécrire une série de commits avec <code>git rebase -i</code> (<code>pick</code>, <code>reword</code>, <code>edit</code>, <code>squash</code>, <code>fixup</code>, <code>drop</code>).
+- Énoncer et appliquer la règle critique « ne jamais rebaser une branche partagée déjà poussée ».</p>
+</blockquote>
+<p>Au Jour 1, le dépôt-école de l'équipe (Adrien Vossough, Guive Voss, François S.) a un historique linéaire de <code>document.txt</code> poussé sur <code>origin</code>. Aujourd'hui la branche diverge : Guive ouvre <code>feature/amelioration</code> pendant qu'Adrien continue sur <code>main</code>. Deux historiques avancent en parallèle — il faut les <strong>intégrer</strong>. Git offre deux opérations pour cela : <code>merge</code> et <code>rebase</code>.</p>
+<h2 id="1-le-point-de-depart-deux-branches-qui-divergent">1. Le point de départ : deux branches qui divergent</h2>
+<p>Avant d'intégrer, comprenons l'état de départ. Une <strong>branche</strong> est un simple pointeur mobile vers un commit. Quand deux branches reçoivent chacune un commit après leur dernier ancêtre commun, l'historique <strong>diverge</strong> : il n'y a plus de ligne droite entre elles.</p>
+<p><img alt="Deux branches divergentes : un commit C4 sur main et un commit C3 sur experiment, partant de l'ancetre commun C2" src="https://git-scm.com/book/en/v2/images/basic-merging-1.png" />
+<em>Source : Pro Git book (CC BY-NC-SA 3.0), git-scm.com</em></p>
+<pre class="mermaid">
+gitGraph
+    commit id: "C0"
+    commit id: "C1-base"
+    branch feature
+    checkout main
+    commit id: "C2-main"
+    checkout feature
+    commit id: "C3-feat"
+</pre>
+
+<p>Sur ce graphe, <code>main</code> et <code>feature</code> partent du même ancêtre <code>C1-base</code>, puis chacune ajoute son commit. Pour ramener le travail de <code>feature</code> dans <code>main</code>, deux stratégies s'offrent à vous.</p>
+<h2 id="2-le-merge-preserver-lhistorique-reel">2. Le merge : préserver l'historique réel</h2>
+<h3 id="21-fast-forward-avance-rapide">2.1 Fast-forward (avance rapide)</h3>
+<p>Le <strong>fast-forward</strong> se produit quand la branche cible (<code>main</code>) n'a <strong>aucun commit</strong> depuis le point de départ de <code>feature</code>. Git n'a alors rien à fusionner : il se contente d'<strong>avancer le pointeur</strong> <code>main</code> jusqu'au dernier commit de <code>feature</code>. Aucun commit de merge n'est créé, l'historique reste une ligne droite.</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>switch<span class="w"> </span>main<span class="w">          </span><span class="c1"># se placer sur la branche d&#39;accueil</span>
+git<span class="w"> </span>merge<span class="w"> </span>feature/x<span class="w">      </span><span class="c1"># fast-forward si main n&#39;a pas bouge</span>
+</code></pre></div>
+<h3 id="22-commit-de-merge-no-ff">2.2 Commit de merge (<code>--no-ff</code>)</h3>
+<p>Quand les <strong>deux</strong> branches ont avancé (cas de la divergence ci-dessus), un fast-forward est impossible. Git crée un <strong>commit de merge</strong> : un commit spécial à <strong>deux parents</strong> qui réconcilie les deux historiques. Ce commit matérialise pour toujours « ici, telle branche a été intégrée ».</p>
+<p><img alt="Commit de merge C6 a deux parents reliant main et la branche de fonctionnalite" src="https://git-scm.com/book/en/v2/images/basic-merging-2.png" />
+<em>Source : Pro Git book (CC BY-NC-SA 3.0), git-scm.com</em></p>
+<p>L'option <code>--no-ff</code> (no fast-forward) <strong>force</strong> la création de ce commit de merge même quand un fast-forward serait possible. Intérêt : tracer explicitement le périmètre d'une fonctionnalité.</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>switch<span class="w"> </span>main
+git<span class="w"> </span>merge<span class="w"> </span>--no-ff<span class="w"> </span>feature/amelioration<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;merge: integration amelioration&quot;</span>
+<span class="c1"># -&gt; cree un commit de merge meme si un fast-forward etait possible</span>
+</code></pre></div>
+<pre class="mermaid">
+gitGraph
+    commit id: "M0"
+    commit id: "M1-base"
+    branch feature
+    checkout main
+    commit id: "M2-main"
+    checkout feature
+    commit id: "M3-feat"
+    checkout main
+    merge feature id: "M4-merge"
+</pre>
+
+<p>🔹 Bonne pratique production : sur le dépôt-école, l'équipe d'Adrien utilise <code>--no-ff</code> pour les fusions de fonctionnalités afin de garder visible le « bloc » de chaque feature. La logique est reprise côté forge par l'option <em>Create a merge commit</em> (Module 3.1).</p>
+<h2 id="3-le-rebase-reecrire-pour-lineariser">3. Le rebase : réécrire pour linéariser</h2>
+<p>Le <strong>rebase</strong> ne fusionne pas : il <strong>rejoue</strong> les commits de votre branche, un par un, <strong>par-dessus</strong> la pointe d'une autre branche. Le résultat est un historique <strong>linéaire</strong>, comme si vous aviez développé à partir du dernier état de <code>main</code>.</p>
+<p><img alt="Branches divergentes C3 et C4 avant un rebase, avec l'ancetre commun C2" src="https://git-scm.com/book/en/v2/images/basic-rebase-1.png" />
+<em>Source : Pro Git book (CC BY-NC-SA 3.0), git-scm.com</em></p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>switch<span class="w"> </span>feature/amelioration
+git<span class="w"> </span>rebase<span class="w"> </span>main<span class="w">          </span><span class="c1"># rejoue les commits de feature au-dessus de main</span>
+</code></pre></div>
+<p>Après le rebase, les commits de <code>feature</code> ont de <strong>nouveaux SHA</strong> (ce sont des copies, pas les originaux) et pointent désormais sur la pointe de <code>main</code>. L'ancêtre commun a, en pratique, été déplacé.</p>
+<p><img alt="Historique linearise apres rebase : C4' rejoue au-dessus de C3 sur main" src="https://git-scm.com/book/en/v2/images/basic-rebase-3.png" />
+<em>Source : Pro Git book (CC BY-NC-SA 3.0), git-scm.com</em></p>
+<p>Il reste ensuite à faire avancer <code>main</code> : comme <code>feature</code> descend maintenant en ligne droite de <code>main</code>, un simple <code>merge</code> se résout en <strong>fast-forward</strong>.</p>
+<p><img alt="Fast-forward de main apres le rebase de la branche de fonctionnalite" src="https://git-scm.com/book/en/v2/images/basic-rebase-4.png" />
+<em>Source : Pro Git book (CC BY-NC-SA 3.0), git-scm.com</em></p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>switch<span class="w"> </span>main
+git<span class="w"> </span>merge<span class="w"> </span>feature/amelioration<span class="w">   </span><span class="c1"># fast-forward : historique 100% lineaire</span>
+</code></pre></div>
+<p>En cas de problème pendant un rebase (conflit), trois commandes pilotent la suite :</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>rebase<span class="w"> </span>--continue<span class="w">    </span><span class="c1"># poursuivre apres avoir resolu un conflit</span>
+git<span class="w"> </span>rebase<span class="w"> </span>--skip<span class="w">        </span><span class="c1"># ignorer le commit en cours de rejeu</span>
+git<span class="w"> </span>rebase<span class="w"> </span>--abort<span class="w">       </span><span class="c1"># tout annuler, revenir a l&#39;etat d&#39;avant rebase</span>
+</code></pre></div>
+<h2 id="4-le-rebase-interactif-nettoyer-une-serie-de-commits">4. Le rebase interactif : nettoyer une série de commits</h2>
+<p><code>git rebase -i</code> (interactif) ouvre un éditeur listant les commits à rejouer. Vous choisissez une <strong>action</strong> pour chacun. C'est l'outil pour transformer un historique brouillon (« wip », « oups », « fix typo ») en une série propre avant de proposer une revue.</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>HEAD~5<span class="w">     </span><span class="c1"># editer les 5 derniers commits</span>
+</code></pre></div>
+<pre class="mermaid">
+flowchart LR
+    t_pick["pick : garder tel quel"]
+    t_reword["reword : changer le message"]
+    t_edit["edit : s'arreter pour amender"]
+    t_squash["squash : fusionner et garder les messages"]
+    t_fixup["fixup : fusionner et jeter le message"]
+    t_drop["drop : supprimer le commit"]
+    t_pick --&gt;|"option par defaut"| t_reword
+    t_reword --&gt;|"corriger un libelle"| t_edit
+    t_edit --&gt;|"modifier le contenu"| t_squash
+    t_squash --&gt;|"regrouper proprement"| t_fixup
+    t_fixup --&gt;|"absorber un correctif"| t_drop
+</pre>
+
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Effet</th>
+<th>Cas d'usage type sur le dépôt-école</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pick</code></td>
+<td>garde le commit inchangé</td>
+<td>conserver un commit déjà propre</td>
+</tr>
+<tr>
+<td><code>reword</code></td>
+<td>rejoue mais ouvre l'éditeur du message</td>
+<td>corriger « amelioration » en <code>feat: enrichir document.txt</code></td>
+</tr>
+<tr>
+<td><code>edit</code></td>
+<td>s'arrête sur ce commit pour l'amender</td>
+<td>scinder un commit trop gros de François</td>
+</tr>
+<tr>
+<td><code>squash</code></td>
+<td>fusionne dans le précédent, <strong>concatène</strong> les messages</td>
+<td>regrouper 3 commits « wip » en un seul</td>
+</tr>
+<tr>
+<td><code>fixup</code></td>
+<td>fusionne dans le précédent, <strong>jette</strong> le message</td>
+<td>absorber un « fix typo » dans son commit parent</td>
+</tr>
+<tr>
+<td><code>drop</code></td>
+<td>supprime le commit</td>
+<td>retirer un commit de debug oublié</td>
+</tr>
+</tbody>
+</table>
+<p>🔹 Astuce : <code>git commit --fixup &lt;hash&gt;</code> puis <code>git rebase -i --autosquash</code> placent et marquent automatiquement les correctifs en <code>fixup</code>. Gain de temps lors du nettoyage avant revue.</p>
+<h2 id="5-merge-ou-rebase-larbre-de-decision">5. Merge ou rebase ? L'arbre de décision</h2>
+<pre class="mermaid">
+flowchart TB
+    t_start["Brancher integrer du travail"] --&gt;|"premiere question"| t_shared{"Branche deja poussee et partagee ?"}
+    t_shared --&gt;|"oui"| t_merge["MERGE : ne pas reecrire"]
+    t_shared --&gt;|"non, branche locale"| t_goal{"Objectif : historique lineaire ?"}
+    t_goal --&gt;|"oui, avant revue"| t_rebase["REBASE puis fast-forward"]
+    t_goal --&gt;|"non, tracer la feature"| t_noff["MERGE --no-ff"]
+</pre>
+
+<table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>Merge</th>
+<th>Rebase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Historique</td>
+<td>préservé, fidèle à la réalité</td>
+<td>linéaire, réécrit</td>
+</tr>
+<tr>
+<td>SHA des commits</td>
+<td>inchangés</td>
+<td><strong>nouveaux</strong> (commits recréés)</td>
+</tr>
+<tr>
+<td>Traçabilité du périmètre de branche</td>
+<td>oui (commit de merge)</td>
+<td>non (fusion gommée)</td>
+</tr>
+<tr>
+<td>Branche partagée poussée</td>
+<td><strong>sûr</strong></td>
+<td>🟥 dangereux</td>
+</tr>
+<tr>
+<td>Lisibilité de <code>git log</code></td>
+<td>moyenne</td>
+<td>élevée</td>
+</tr>
+<tr>
+<td>Résolution de conflit</td>
+<td>une fois, au merge</td>
+<td>potentiellement à chaque commit rejoué</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-la-regle-dor-des-branches-partagees">6. La règle d'or des branches partagées</h2>
+<p>🟥 Règle critique : <strong>ne jamais rebaser une branche déjà poussée et partagée.</strong> Le rebase recrée des commits avec de nouveaux SHA. Si un collègue (Luigi M.) a déjà basé son travail sur les anciens commits, votre <code>push --force</code> réécrit l'historique distant : Luigi se retrouve avec des doublons et des conflits inextricables au prochain <code>pull</code>.</p>
+<blockquote>
+<p>🟨 Warning — Le piège du « petit force pour nettoyer »
+Rebaser une branche de fonctionnalité <strong>personnelle</strong> non encore partagée est sain et recommandé avant la revue. Le danger n'apparaît qu'à partir du moment où <strong>quelqu'un d'autre</strong> a tiré ces commits. En cas de doute, <code>merge</code>. Si vous devez réécrire une branche partagée, c'est une <strong>décision d'équipe</strong> annoncée, jamais un réflexe individuel.</p>
+<p>🟨 Warning — <code>git pull</code> qui « fait un merge » non désiré
+Par défaut, <code>git pull</code> fait un <code>fetch</code> + <code>merge</code>, ce qui crée des commits de merge parasites sur les branches de suivi. Pour un historique propre, configurez <code>git config --global pull.rebase true</code> (déjà recommandé dans la config du Jour 1).</p>
+</blockquote>
+<h2 id="ce-quil-faut-retenir">Ce qu'il faut retenir</h2>
+<ol>
+<li><strong>Fast-forward</strong> = avance de pointeur sans commit de merge ; possible seulement si la cible n'a pas bougé.</li>
+<li><strong><code>merge --no-ff</code></strong> = crée toujours un commit de merge à deux parents, qui trace le périmètre de la feature.</li>
+<li><strong><code>rebase</code></strong> = rejoue vos commits ailleurs, leur donne de <strong>nouveaux SHA</strong>, et produit un historique linéaire.</li>
+<li><strong><code>rebase -i</code></strong> = nettoie une série de commits (<code>reword</code>/<code>squash</code>/<code>fixup</code>/<code>drop</code>) avant la revue.</li>
+<li>🟥 <strong>Jamais de rebase sur une branche partagée poussée.</strong> En partagé : merge.</li>
+</ol>
+<h2 id="validation-des-acquis">Validation des acquis</h2>
+<p><strong>Q1.</strong> Dans quel cas Git réalise-t-il un fast-forward lors d'un <code>git merge feature</code> depuis <code>main</code> ?</p>
+<ul>
+<li>A. Quand <code>feature</code> et <code>main</code> ont chacune reçu de nouveaux commits depuis leur ancêtre commun.</li>
+<li>B. Quand <code>main</code> n'a reçu aucun commit depuis le point de départ de <code>feature</code>.</li>
+<li>C. Toujours, sauf si l'on ajoute <code>--no-ff</code>.</li>
+<li>D. Uniquement si un conflit est détecté.</li>
+</ul>
+<p><strong>Q2.</strong> Quel est l'effet principal de <code>git rebase main</code> exécuté depuis <code>feature</code> ?</p>
+<ul>
+<li>A. Il crée un commit de merge à deux parents sur <code>main</code>.</li>
+<li>B. Il supprime la branche <code>feature</code> après fusion.</li>
+<li>C. Il rejoue les commits de <code>feature</code> au-dessus de <code>main</code>, avec de nouveaux SHA.</li>
+<li>D. Il déplace le pointeur <code>main</code> sans toucher à <code>feature</code>.</li>
+</ul>
+<p><strong>Q3.</strong> Quelle action de <code>git rebase -i</code> fusionne un commit dans le précédent <strong>en jetant</strong> son message ?</p>
+<ul>
+<li>A. <code>squash</code></li>
+<li>B. <code>reword</code></li>
+<li>C. <code>fixup</code></li>
+<li>D. <code>pick</code></li>
+</ul>
+<p><strong>Q4.</strong> Pourquoi est-il dangereux de rebaser une branche déjà poussée et partagée ?</p>
+<ul>
+<li>A. Parce que le rebase supprime les fichiers non commités.</li>
+<li>B. Parce que les commits recréés ont de nouveaux SHA, ce qui désynchronise les collègues qui les avaient déjà tirés.</li>
+<li>C. Parce que <code>rebase</code> ne fonctionne pas sur une branche distante.</li>
+<li>D. Parce que cela double la taille du dépôt.</li>
+</ul>
+<p><strong>Q5.</strong> Vous voulez tracer explicitement le périmètre d'une fonctionnalité dans l'historique de <code>main</code>. Quelle commande choisir ?</p>
+<ul>
+<li>A. <code>git merge --ff-only feature</code></li>
+<li>B. <code>git rebase main</code></li>
+<li>C. <code>git merge --no-ff feature</code></li>
+<li>D. <code>git reset --hard feature</code></li>
+</ul>
+<p>🔷 Correction distribuée par le formateur (voir <a href="corriges/corrige-01-merge-vs-rebase.md">corriges/corrige-01-merge-vs-rebase.md</a>).</p>
+<h2 id="transition">Transition</h2>
+<p>Vous savez intégrer deux branches proprement. Mais que faire quand un commit déjà parti est <strong>faux</strong> ? Le module suivant, <a href="02-revert-reset.md">Annulation : revert et reset</a>, distingue l'annulation sûre (qui ajoute un commit) de l'annulation destructrice (qui déplace HEAD).</p>
+    </article>
+
+    
+    
+    
+    <script>
+    (function() {
+        'use strict';
+        
+        function initMermaidLightbox() {
+            // Crée le conteneur lightbox
+            const lightbox = document.createElement('div');
+            lightbox.className = 'mermaid-lightbox';
+            lightbox.innerHTML = `
+                <div class="mermaid-lightbox-backdrop"></div>
+                <div class="mermaid-lightbox-container">
+                    <div class="mermaid-lightbox-content"></div>
+                </div>
+                <div class="mermaid-lightbox-controls">
+                    <button class="mermaid-lb-btn mermaid-lb-zoom-in" title="Zoom +">+</button>
+                    <button class="mermaid-lb-btn mermaid-lb-zoom-reset" title="Reset">100%</button>
+                    <button class="mermaid-lb-btn mermaid-lb-zoom-out" title="Zoom -">−</button>
+                    <button class="mermaid-lb-btn mermaid-lb-close" title="Fermer">✕</button>
+                </div>
+            `;
+            document.body.appendChild(lightbox);
+
+            // Variables de zoom et pan
+            let scale = 1;
+            let translateX = 0;
+            let translateY = 0;
+            let isDragging = false;
+            let startX, startY;
+
+            const container = lightbox.querySelector('.mermaid-lightbox-container');
+            const content = lightbox.querySelector('.mermaid-lightbox-content');
+            const backdrop = lightbox.querySelector('.mermaid-lightbox-backdrop');
+
+            // Ajoute un bouton d'expansion à chaque diagramme Mermaid
+            document.querySelectorAll('.mermaid, pre.mermaid').forEach(diagram => {
+                const expandBtn = document.createElement('button');
+                expandBtn.className = 'mermaid-expand-btn';
+                expandBtn.innerHTML = '⛶';
+                expandBtn.title = 'Agrandir le diagramme';
+                expandBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightbox(diagram);
+                });
+                
+                // Wrapper pour positionner le bouton
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mermaid-wrapper';
+                diagram.parentNode.insertBefore(wrapper, diagram);
+                wrapper.appendChild(diagram);
+                wrapper.appendChild(expandBtn);
+            });
+
+            function openLightbox(diagram) {
+                // Clone le wrapper .mermaid complet (pas juste le SVG) pour que
+                // tous les selecteurs CSS qui ciblent ".mermaid X" continuent
+                // de s'appliquer au SVG cloné dans la lightbox.
+                const svg = diagram.querySelector('svg');
+                if (svg) {
+                    content.innerHTML = '';
+                    const clonedDiagram = diagram.cloneNode(true);
+                    clonedDiagram.classList.add('mermaid-clone');
+
+                    // Nettoyer les eventuels boutons / wrappers parasites copies
+                    clonedDiagram.querySelectorAll('.mermaid-expand-btn').forEach(b => b.remove());
+
+                    const clonedSvg = clonedDiagram.querySelector('svg');
+
+                    // Garder le viewBox pour les proportions
+                    if (clonedSvg && !clonedSvg.hasAttribute('viewBox') && svg.viewBox && svg.viewBox.baseVal) {
+                        const vb = svg.viewBox.baseVal;
+                        if (vb.width && vb.height) {
+                            clonedSvg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.width} ${vb.height}`);
+                        }
+                    }
+
+                    if (clonedSvg) {
+                        // Le CSS gère les dimensions (80vw). On NE modifie PAS
+                        // les foreignObject : Mermaid centre les labels via le
+                        // transform du <g class="label"> parent, calculé pour
+                        // la taille originale du foreignObject. Toute mise à
+                        // l'echelle ici décale les textes (flowchart TD, etc.).
+                        clonedSvg.removeAttribute('width');
+                        clonedSvg.removeAttribute('height');
+                    }
+
+                    content.appendChild(clonedDiagram);
+                } else {
+                    content.innerHTML = diagram.innerHTML;
+                }
+                
+                // Reset zoom et position
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                applyTransform();
+                
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            function applyTransform() {
+                content.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                lightbox.querySelector('.mermaid-lb-zoom-reset').textContent = Math.round(scale * 100) + '%';
+            }
+
+            function zoomIn() {
+                scale = Math.min(scale * 1.25, 5);
+                applyTransform();
+            }
+
+            function zoomOut() {
+                scale = Math.max(scale / 1.25, 0.25);
+                applyTransform();
+            }
+
+            function zoomReset() {
+                scale = 1;
+                translateX = 0;
+                translateY = 0;
+                applyTransform();
+            }
+
+            // Événements des boutons
+            lightbox.querySelector('.mermaid-lb-close').addEventListener('click', closeLightbox);
+            lightbox.querySelector('.mermaid-lb-zoom-in').addEventListener('click', zoomIn);
+            lightbox.querySelector('.mermaid-lb-zoom-out').addEventListener('click', zoomOut);
+            lightbox.querySelector('.mermaid-lb-zoom-reset').addEventListener('click', zoomReset);
+            backdrop.addEventListener('click', closeLightbox);
+
+            // Fermer avec Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                    closeLightbox();
+                }
+            });
+
+            // Zoom avec la molette
+            container.addEventListener('wheel', (e) => {
+                if (!lightbox.classList.contains('active')) return;
+                e.preventDefault();
+                
+                if (e.deltaY < 0) {
+                    scale = Math.min(scale * 1.1, 5);
+                } else {
+                    scale = Math.max(scale / 1.1, 0.25);
+                }
+                applyTransform();
+            });
+
+            // Pan avec la souris
+            container.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                container.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                applyTransform();
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                container.style.cursor = 'grab';
+            });
+
+            // Touch support pour mobile
+            let touchStartX, touchStartY;
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX - translateX;
+                    touchStartY = e.touches[0].clientY - translateY;
+                }
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    e.preventDefault();
+                    translateX = e.touches[0].clientX - touchStartX;
+                    translateY = e.touches[0].clientY - touchStartY;
+                    applyTransform();
+                }
+            });
+        }
+
+        // Initialise après le rendu de Mermaid
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof mermaid !== 'undefined') {
+                setTimeout(initMermaidLightbox, 600);
+            } else {
+                initMermaidLightbox();
+            }
+        });
+    })();
+    </script>
+
+</body>
+</html>
