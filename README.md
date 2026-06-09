@@ -11,5 +11,6 @@ Utilisable via interface.
 
 ## Chapitre 2: depot local
 
-
 ## Chapitre 3: repository distant
+
+## Chapitre 4: branch
